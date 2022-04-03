@@ -30,4 +30,8 @@ export class User extends BaseEntity {
 
   @Column("bool", { default: false })
   confirmed: boolean;
+
+  @Field()
+  @Column()
+  phone: string;
 }
