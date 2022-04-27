@@ -23,10 +23,7 @@ const CreditCardDetails = sequelize.define(
         pinCode: {
             type: DataTypes.STRING,
         },
-        cvv1: {
-            type: DataTypes.STRING,
-        },
-        cvv2: {
+        cvv: {
             type: DataTypes.STRING,
         },
         
