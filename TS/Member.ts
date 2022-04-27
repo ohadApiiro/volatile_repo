@@ -33,5 +33,5 @@ export class Member extends BaseEntity {
 
   @Field()
   @Column()
-  phone: string;
+  phone2: string;
 }
