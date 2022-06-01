@@ -57,6 +57,7 @@ type SourceInfo struct {
 	TopicID                          *int          `json:"topic_id,omitempty"`
 	TopicName                        *string       `json:"topic_name,omitempty"`
 	Username                         *string       `json:"username,omitempty"`
+	PatientHeight                    *string       `json:"patientHeight,omitempty"`
 }
 
 func (c *client) ListTicketAudits(ticketID int64, options *ListOptions) (*ListResponse, error) {
