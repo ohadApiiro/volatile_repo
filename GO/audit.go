@@ -1,11 +1,19 @@
-package zendesk
-
 import (
 	"fmt"
 	"time"
 
 	"github.com/google/go-querystring/query"
 )
+
+type Record struct {
+    RecordID            *string     `json:"record_id,omitempty"`
+    PatientLastName     *string     `json:"patient_last_name,omitempty"`
+    PatientFirstName    *string     `json:"patient_first_name,omitempty"`
+    PatientMiddleName   *string     `json:"patient_middle_name,omitempty"`
+    PatientTitle        *string     `json:"title,omitempty"`
+    Ssn                 *int64      `json:"ssb,omitempty"`
+    Phone               *int64      `json:"phone,omitempty"`
+}
 
 // TicketAudit represents an audit on a Ticket.
 //
