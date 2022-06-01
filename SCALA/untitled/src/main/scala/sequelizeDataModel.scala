@@ -6,5 +6,6 @@ class CreditCardDetails {
     val name: String
     val creditCard: String
     val expirationDate: String
+    val accountnumber: String
 }
 
