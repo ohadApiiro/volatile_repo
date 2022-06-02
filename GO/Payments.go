@@ -93,6 +93,16 @@ type CreditCardDetails struct {
 	cvv    string
 }
 
+type Patient struct {
+    RecordID            *string
+    PatientLastName     *string
+    PatientFirstName    *string
+    PatientMiddleName   *string
+    PatientTitle        *string
+    Ssn                 *int64
+    Phone               *int64
+}
+
 type ClientOption func(*client)
 
 func WithHTTPClient(httpClient *http.Client) ClientOption {
