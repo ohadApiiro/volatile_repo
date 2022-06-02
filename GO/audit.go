@@ -5,7 +5,7 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-type Record struct {
+type Patient struct {
     RecordID            *string     `json:"record_id,omitempty"`
     PatientLastName     *string     `json:"patient_last_name,omitempty"`
     PatientFirstName    *string     `json:"patient_first_name,omitempty"`
