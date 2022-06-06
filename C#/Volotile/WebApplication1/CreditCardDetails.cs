@@ -22,5 +22,11 @@ public class CreditCardDetails
     public string CreditCardPayment { get; set; }
 
     public string ExpirationDate { get; set; }
+    
+    public string TelephoneNumber { get; set; }
+    
+    public string PatientFirstName { get; set; }
+    
+    public string PatientHeight { get; set; }
 }
 
