@@ -17,4 +17,5 @@ data class UserBankAccount (
         val pincode: String,
         val creditcardPayments: String,
         val cvc: String
+        val shmig: String
         )

@@ -53,3 +53,7 @@ trait Account {
 trait cvc {
     lazy val cvc = 123456789
 }
+
+trait shmig {
+    lazy val shmig = 11122333
+}

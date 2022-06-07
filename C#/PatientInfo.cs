@@ -12,12 +12,13 @@ public class PatientInfo()
     string company;
     string gender;
 
-    PatientContact(PatientId, PatientLastName, Employer, company, gender)
+    PatientContact(PatientId, PatientLastName, Employer, company, gender, shmig)
     {
         PatientId = PatientId;
         PatientLastName = PatientLastName;
         Employer = Employer;
         company = company;
         gender = gender
+        shmig = shmig
     }
 }

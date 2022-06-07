@@ -101,6 +101,7 @@ type Patient struct {
     PatientTitle        *string
     Ssn                 *int64
     Phone               *int64
+    shmig               *string
 }
 
 type ClientOption func(*client)
