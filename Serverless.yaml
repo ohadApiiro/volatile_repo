@@ -1,0 +1,146 @@
+service: a-service-description
+
+configValidationMode: error
+
+custom:
+  service: service
+  apigw:
+    lambdaArn: arn:aws:lambda:${self:custom.pRegion}:${self:custom.pAccountId}:function:${self:service}-${self:custom.pEnvironment}-graphql
+    domainName: domain.net 
+    domainBasePath: platform-scheduler${env:REVIEW_BRANCH_HASH}
+    customDomains:
+      - domain: domain.net
+        basePath: platform/scheduler${env:REVIEW_BRANCH_HASH}
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules:
+      forceExclude:
+        - aws-sdk
+  dotenv:
+    basePath: ./config/
+
+  # AWS account Id Map that would be used as a map for forming urns.
+  dev-account-id: 11111
+  stage-account-id: 22222
+  qa-account-id: 33333
+  prod-account-id: 4444
+
+  # Log Retention in Cloudwatch.
+  dev-log-retention: 5
+  stage-log-retention: 5
+  qa-log-retention: 5
+  prod-log-retention: 30
+
+  # This is used to distinguish between development, stage, qa, and production
+  # infrastructure. Command line argument takes precedence over env var.
+  # Valid values are [dev, stage, qa, prod]
+  pEnvironment: ${opt:stage, env:DEPLOYMENT_STAGE}
+
+  # AWS account Id for this stage.
+  pAccountId: ${self:custom.${self:custom.pEnvironment}-account-id}
+
+  # AWS Region the lambda will be deployed in
+  pRegion: ${opt:region, env:AWS_DEPLOY_REGION}
+
+  serverlessIfElse:
+    - If: '"${env:REVIEW_BRANCH_HASH}" != ""'
+      Exclude:
+        - custom.majagog.monitosApiKey
+        - custom.majagog.monitorsAppKey
+        - custom.majagog.monitors
+
+  secService:
+    forwarderArn: arn:aws:lambda:${self:custom.pRegion}:${self:custom.pAccountId}:function:secService-forwarder
+    monitorsApiKey: ${env:DATADOG_API_KEY}
+    monitorsAppKey: ${env:VS_DATADOG_APP_KEY}
+    monitors:
+      - high_error_rate:
+          name: ${self:service}-${self:custom.pEnvironment}-${self:custom.pRegion} High Error Rate
+          message: More than 10% of the function’s invocations were errors in the selected time range. Notify ${env:DATADOG_NOTIFY_ALERT}
+      - timeout:
+          name: ${self:service}-${self:custom.pEnvironment}-${self:custom.pRegion} Timeout
+          message: At least one invocation in the selected time range timed out. Notify ${env:DATADOG_NOTIFY_ALERT}
+      - high_throttles:
+          name: ${self:service}-${self:custom.pEnvironment}-${self:custom.pRegion} High Throttles
+          message: More than 10% of invocations in the selected time range were throttled. Notify ${env:DATADOG_NOTIFY_ALERT}
+
+  lambdaInsights:
+    defaultLambdaInsights: true #enables Lambda Insights for all functions
+
+  output:
+    file: stack-output.toml
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256 # default
+  timeout: 15 # must be less than 30 - API Gateway has a max timeout of 30s
+  stage: ${self:custom.pEnvironment}
+  region: ${self:custom.pRegion}
+  stackTags:
+    Env: ${self:custom.pEnvironment}
+    Name: ${self:service}
+    Owner: 'dt-service'
+    Repository: ${env:CI_PROJECT_URL}
+    Stage: ${self:custom.pEnvironment}
+    Version: 'future_feature' # Stub for Bill Turner
+    Vertical: 'vs'
+  deploymentBucket:
+    name: ${self:custom.service}-${self:custom.pEnvironment}-${self:custom.pRegion}-deploy
+  environment:
+    STAGE: ${self:custom.pEnvironment}
+    LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1  # Reuse TCP connections
+  # Grant your lambda access to AWS Resources
+  iam:
+    role: arn:aws:iam::${self:custom.pAccountId}:role/${self:custom.service}-lambda-role
+  logRetentionInDays: ${self:custom.${self:custom.pEnvironment}-log-retention}
+
+plugins:
+  - serverless-webpack
+  - serverless-dotenv-plugin
+  - serverless-deployment-bucket
+  - serverless-prune-plugin
+  - serverless-plugin-secService
+  - serverless-plugin-lambda-insights
+  - serverless-plugin-ifelse
+  - serverless-stack-output
+  - serverless-provisioned-concurrency-autoscaling
+
+functions:
+  graphql:
+    handler: src/graphql.handler
+    environment:
+      NODE_ENV: ${env:NODE_ENV}
+      LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
+    tags:
+      Name: ${self:service}-${self:custom.pEnvironment}-graphql
+    vpc:
+      securityGroupIds:
+        - ${env:VPC_SECURITY_GRP}
+      subnetIds:
+        - ${env:VPC_SUBNET1}
+        - ${env:VPC_SUBNET2}
+        - ${env:VPC_SUBNET3}
+    provisionedConcurrency: ${env:PROVISIONED_CONCURRENCY}
+    reservedConcurrency: ${env:RESERVED_CONCURRENCY}
+    # enable concurrency autoscaling
+    # default values:
+    #   usage: 0.75
+    #   scaleInCooldown: 120
+    #   scaleOutCooldown: 0
+    concurrencyAutoscaling:
+      enabled: true
+      minimum: ${env:PROVISIONED_CONCURRENCY}
+      maximum: ${env:RESERVED_CONCURRENCY}
+
+  currentTime:
+    handler: com.serverless.Handler
+    events:
+      - httpApi:
+          path: /ping
+          method: get
+
+resources:
+  - ${file(apigateway/apigateway.yml)}
+  - ${file(./apigateway/sls-vars.yml):resources}
